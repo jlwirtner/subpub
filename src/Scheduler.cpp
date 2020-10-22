@@ -1,3 +1,4 @@
+#include "common.h"
 #include "Scheduler.h"
 #include <iostream>
 #include <sys/types.h>
@@ -6,15 +7,9 @@
 #include <errno.h>
 
 namespace {
-    const int msgSize = 50;
-    typedef struct msg {
-        long mtype = 1;
-        char mtext[msgSize];
-    } msg_t;
-
-    msg_t signalMsg;
-    msg_t listenerMsg;
-    msg_t notificationMsg;
+    subpub::common::msg_t signalMsg;
+    subpub::common::msg_t listenerMsg;
+    subpub::common::msg_t notificationMsg;
 
     std::string delimiter = "***";
 
@@ -59,25 +54,9 @@ void Scheduler::start(void)
 void Scheduler::listenForSignals(void)
 {
     while(1) {
-        if(msgrcv(signalMsgQ, &signalMsg, msgSize, 0, 0) < 0) {
+        if(msgrcv(signalMsgQ, &signalMsg, common::msgSize, 0, 0) < 0) {
             std::cout << "error receiving signal message" << std::endl;
-            switch (errno) {
-                case EFAULT:
-                perror("efault");
-                exit(1);
-                break;
-                case EACCES:
-                perror("eaccess");
-                exit(1);
-                break;
-                case EIDRM:
-                perror("eidrm");
-                exit(1);
-                break;
-                default:
-                perror("idk");
-                exit(1);
-            }
+            common::printMsgQErr();
         } else {
             std::cout << "received signal message: " <<  signalMsg.mtext << std::endl;
             notifyListeners(signalMsg.mtext);
@@ -88,25 +67,9 @@ void Scheduler::listenForSignals(void)
 void Scheduler::listenForListeners(void)
 {
     while (1) {
-        if(msgrcv(listenerMsgQ, &listenerMsg, msgSize, 0, 0) < 0) {
+        if(msgrcv(listenerMsgQ, &listenerMsg, common::msgSize, 0, 0) < 0) {
             std::cout << "error receiving listner message" << std::endl;
-            switch (errno) {
-                case EFAULT:
-                perror("efault");
-                exit(1);
-                break;
-                case EACCES:
-                perror("eaccess");
-                exit(1);
-                break;
-                case EIDRM:
-                perror("eidrm");
-                exit(1);
-                break;
-                default:
-                perror("idk");
-                exit(1);
-            }
+            common::printMsgQErr();
         } else {
             std::cout << "received listner message:" << listenerMsg.mtext << std::endl;
             std::string message{listenerMsg.mtext};
@@ -143,37 +106,9 @@ void Scheduler::notifyListeners(Signal signal)
 namespace {
     void sendNotification(int msgQId)
     {
-        if(msgsnd(msgQId, &notificationMsg, msgSize, 0) < 0) {
+        if(msgsnd(msgQId, &notificationMsg, subpub::common::msgSize, 0) < 0) {
             std::cout << "error sending listener message" << std::endl;
-            switch (errno) {
-                case EACCES:
-                perror("eaccess");
-                exit(1);
-                break;
-                case EAGAIN:
-                perror("eagain");
-                exit(1);
-                break;
-                case EFAULT:
-                perror("efault");
-                exit(1);
-                break;
-                case EIDRM:
-                perror("eidrm");
-                exit(1);
-                break;
-                case EINTR:
-                perror("eintr");
-                exit(1);
-                break;
-                case EINVAL:
-                perror("einval");
-                exit(1);
-                break;
-                default:
-                perror("idk");
-                exit(1);
-            }
+            subpub::common::printMsgQErr();
         } else {
             std::cout << "sent listener message!" << std::endl;
             // return 0;
