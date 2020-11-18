@@ -3,3 +3,4 @@ listen
 post
 tmp*
 build
+.vscode
