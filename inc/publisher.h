@@ -1,5 +1,5 @@
-#ifndef SUBPUB_POSTER_
-#define SUBPUB_POSTER_
+#ifndef SUBPUB_PUBLISHER_
+#define SUBPUB_PUBLISHER_
 
 #include <string>
 
@@ -7,11 +7,11 @@ namespace subpub {
 
 using messageQId = int;
 
-class poster {
+class publisher {
 public:
-    poster();
+    publisher();
 
-    ~poster();
+    ~publisher();
 
     int post(const std::string& signal);
 

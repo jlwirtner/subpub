@@ -3,21 +3,21 @@
 #include <future>
 #include <chrono>
 #include "scheduler.h"
-#include "poster.h"
-#include "listener.h"
+#include "publisher.h"
+#include "subscriber.h"
 
 void runScheduler() {
     subpub::scheduler sched{};
     sched.start();
 }
 
-bool runPoster(std::string message) {
-    subpub::poster publisher{};
+bool runPublisher(std::string message) {
+    subpub::publisher publisher{};
     return (publisher.post(message) == 0);
 }
 
-bool runListener(std::string message) {
-    subpub::listener subscriber{};
+bool runSubscriber(std::string message) {
+    subpub::subscriber subscriber{};
     return (subscriber.wait_for(message) == 0);
 }
 
@@ -25,16 +25,16 @@ TEST_CASE("Subpub sniff test", "[scheduler]") {
     using namespace std::chrono_literals;
 
     std::string message{"Yo!"};
-    auto futureScheduler = std::async(std::launch::async, runScheduler);
-    auto futureListener  = std::async(std::launch::async, runListener, message);
-    auto futurePoster    = std::async(std::launch::async, runPoster, message);
+    auto futureScheduler   = std::async(std::launch::async, runScheduler);
+    auto futureSubscriber  = std::async(std::launch::async, runSubscriber, message);
+    auto futurePublisher   = std::async(std::launch::async, runPublisher, message);
 
-    auto statusListner = futureListener.wait_for(100ms);
-    auto statusPoster  = futurePoster.wait_for(100ms);
+    auto statusSubscriber = futureSubscriber.wait_for(100ms);
+    auto statusPublisher  = futurePublisher.wait_for(100ms);
 
-    REQUIRE(statusListner == std::future_status::ready);
-    REQUIRE(statusPoster  == std::future_status::ready);
+    REQUIRE(statusSubscriber == std::future_status::ready);
+    REQUIRE(statusPublisher  == std::future_status::ready);
 
-    REQUIRE(futureListener.get());
-    REQUIRE(futurePoster.get());
+    REQUIRE(futureSubscriber.get());
+    REQUIRE(futurePublisher.get());
 }

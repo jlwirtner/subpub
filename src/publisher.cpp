@@ -1,4 +1,4 @@
-#include "poster.h"
+#include "publisher.h"
 #include <iostream>
 #include <sys/types.h>
 #include <sys/ipc.h>
@@ -16,7 +16,7 @@ namespace {
 
 namespace subpub {
 
-poster::poster() 
+publisher::publisher() 
 {
     key_t signalKey;
     int flags = IPC_CREAT;
@@ -30,12 +30,12 @@ poster::poster()
     }
 }
 
-poster::~poster()
+publisher::~publisher()
 {
 
 }
 
-int poster::post(const std::string& signal)
+int publisher::post(const std::string& signal)
 {
     if (signal.length() > 50) {
         return ERROR_INVALID_MSG_LEN;

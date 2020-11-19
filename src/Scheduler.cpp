@@ -1,5 +1,5 @@
 #include "common.h"
-#include "Scheduler.h"
+#include "scheduler.h"
 #include <iostream>
 #include <sys/types.h>
 #include <sys/ipc.h>
