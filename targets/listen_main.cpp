@@ -1,9 +1,9 @@
 #include <iostream>
-#include "listener.h"
+#include "subscriber.h"
 
 int main() {
 
-    subpub::listener signal;
+    subpub::subscriber signal;
 
     signal.wait_for("yo!");
     std::cout << "got signal!!" << std::endl;

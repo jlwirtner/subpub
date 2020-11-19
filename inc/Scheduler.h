@@ -12,15 +12,15 @@ namespace subpub {
 using Signal        = std::string;
 using ProcessId     = int;
 using MessageQId    = key_t;
-using ListenerQueue = std::queue<ProcessId>;
+using SubscriberQueue = std::queue<ProcessId>;
 
 class scheduler
 {
 public:
     /**
      * Scheduler is responsible for listening to signals from posters,
-     * and upon receiving a signal, notifying pending listeners. It is also 
-     * responsible for managing pending listeners.
+     * and upon receiving a signal, notifying pending subscribers. It is also 
+     * responsible for managing pending subscribers.
      *
      * Open message queues for both signals and listners.
      */
@@ -29,7 +29,7 @@ public:
     ~scheduler();
 
     /**
-     * Begin listning for signals and listeners.
+     * Begin listning for signals and subscribers.
      */
     void start(void);
 
@@ -37,31 +37,31 @@ private:
     /**
      * Begin receiving signals from posters.
      * Upon receiving a signal from a poster,
-     * wake up all pending listeners.
+     * wake up all pending subscribers.
      */
     void listenForSignals(void);
 
     /**
-     * Begin listening for listeners.
-     * Add listener to list of listeners for requested signal.
+     * Begin listening for subscribers.
+     * Add subscriber to list of subscribers for requested signal.
      */
-    void listenForListeners(void);
+    void listenForSubscribers(void);
 
     /**
-     * Add listener to list of pending listeners
+     * Add subscriber to list of pending subscribers
      */
-    void addListenerForSignal(ProcessId listener, Signal signal);
+    void addSubscriberForSignal(ProcessId subscriber, Signal signal);
 
-    void notifyListeners(Signal signal);
+    void notifySubscribers(Signal signal);
 
-    std::map<Signal, ListenerQueue> signalToListeners;
+    std::map<Signal, SubscriberQueue> signalToSubscribers;
     std::mutex mapProtecter;
 
     MessageQId signalMsgQ;
-    MessageQId listenerMsgQ;
+    MessageQId subscriberMsgQ;
 
     std::thread signalProcessor;
-    std::thread listenerProcessor;
+    std::thread subscriberProcessor;
 };
 } // namespace subpub
 

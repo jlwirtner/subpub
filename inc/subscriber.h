@@ -1,5 +1,5 @@
-#ifndef SUBPUB_LISTENER_
-#define SUBPUB_LISTENER_
+#ifndef SUBPUB_SUBSCRIBER_
+#define SUBPUB_SUBSCRIBER_
 
 #include <string>
 
@@ -7,18 +7,18 @@ namespace subpub {
 
 using messageQId = int;
 
-class listener {
+class subscriber {
 public:
-    listener();
+    subscriber();
 
-    ~listener();
+    ~subscriber();
 
     int wait_for(const std::string& signal);
 
     static constexpr int ERROR_INVALID_MSG_LEN = -44;
 
 private:
-    messageQId listenerMsgQ;
+    messageQId subscriberMsgQ;
 
     std::string tmpFileName;
 };

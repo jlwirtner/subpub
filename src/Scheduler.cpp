@@ -20,35 +20,35 @@ namespace subpub {
 
 scheduler::scheduler(void)
 {
-    key_t signalKey, listenerKey;
+    key_t signalKey, subscriberKey;
     int flags = IPC_CREAT;
 
     if ((signalKey   = ftok("keys/signal", 1)) == -1) {
         std::cout << "failed to get signal key" << std::endl;
     }
-    if ((listenerKey = ftok("keys/listeners", 1)) == -1) {
-        std::cout << "failed to get listener key" << std::endl;
+    if ((subscriberKey = ftok("keys/subscribers", 1)) == -1) {
+        std::cout << "failed to get subscriber key" << std::endl;
     }
 
     if ((signalMsgQ = msgget(signalKey, flags)) == -1) {
         std::cout << "failed to get signal msgQ" << std::endl;
     }
 
-    if ((listenerMsgQ = msgget(listenerKey, flags)) == -1) {
-        std::cout << "failed to get listener msgQ" << std::endl;
+    if ((subscriberMsgQ = msgget(subscriberKey, flags)) == -1) {
+        std::cout << "failed to get subscriber msgQ" << std::endl;
     }
 }
 
 scheduler::~scheduler(void)
 {
     signalProcessor.join();
-    listenerProcessor.join();
+    subscriberProcessor.join();
 }   
 
 void scheduler::start(void)
 {
     signalProcessor   = std::thread(&scheduler::listenForSignals, this);
-    listenerProcessor = std::thread(&scheduler::listenForListeners, this);
+    subscriberProcessor = std::thread(&scheduler::listenForSubscribers, this);
 }
 
 void scheduler::listenForSignals(void)
@@ -59,15 +59,15 @@ void scheduler::listenForSignals(void)
             common::printMsgQErr();
         } else {
             std::cout << "received signal message: " <<  signalMsg.mtext << std::endl;
-            notifyListeners(signalMsg.mtext);
+            notifySubscribers(signalMsg.mtext);
         }
     }
 }
 
-void scheduler::listenForListeners(void)
+void scheduler::listenForSubscribers(void)
 {
     while (1) {
-        if(msgrcv(listenerMsgQ, &listenerMsg, common::msgSize, 0, 0) < 0) {
+        if(msgrcv(subscriberMsgQ, &listenerMsg, common::msgSize, 0, 0) < 0) {
             std::cout << "error receiving listner message" << std::endl;
             common::printMsgQErr();
         } else {
@@ -77,26 +77,26 @@ void scheduler::listenForListeners(void)
             std::string id = message.substr(message.find(delimiter)+3, message.length());
             std::cout << "signal: " << signal << std::endl;
             std::cout << "id: " << id << std::endl;
-            addListenerForSignal(std::stoi(id), signal);
+            addSubscriberForSignal(std::stoi(id), signal);
         }
     }
 }
 
-void scheduler::addListenerForSignal(ProcessId listener, Signal signal)
+void scheduler::addSubscriberForSignal(ProcessId subscriber, Signal signal)
 {
     std::lock_guard<std::mutex> lock(mapProtecter);
-    signalToListeners[signal].push(listener);
+    signalToSubscribers[signal].push(subscriber);
 }
 
-void scheduler::notifyListeners(Signal signal)
+void scheduler::notifySubscribers(Signal signal)
 {
     std::lock_guard<std::mutex> lock(mapProtecter);
     ProcessId currentId{};
-    ListenerQueue& listeners{signalToListeners[signal]};
+    SubscriberQueue& subscribers{signalToSubscribers[signal]};
     
-    while(!listeners.empty()) {
-        currentId = listeners.front();
-        listeners.pop();
+    while(!subscribers.empty()) {
+        currentId = subscribers.front();
+        subscribers.pop();
         sendNotification(currentId);
     }
 }

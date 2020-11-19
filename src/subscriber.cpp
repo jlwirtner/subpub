@@ -1,5 +1,5 @@
 #include "common.h"
-#include "listener.h"
+#include "subscriber.h"
 #include <iostream>
 #include <fstream>
 #include <sys/types.h>
@@ -10,7 +10,7 @@
 #include <fcntl.h>
 
 namespace {
-    subpub::common::msg_t listenerMsg;
+    subpub::common::msg_t subscriberMsg;
     subpub::common::msg_t rcvMsg;
 
     namespace fs = std::__fs::filesystem;
@@ -20,26 +20,26 @@ namespace {
 
 namespace subpub {
 
-listener::listener() 
+subscriber::subscriber() 
 {
-    key_t listenerKey;
+    key_t subscriberKey;
     int flags = IPC_CREAT;
 
-    if ((listenerKey   = ftok("keys/listeners", 1)) == -1) {
+    if ((subscriberKey   = ftok("keys/subscribers", 1)) == -1) {
         common::printFtokErr();
     } 
     
-    if ((listenerMsgQ = msgget(listenerKey, flags)) == -1) {
-        std::cout << "failed to get listener msgQ" << std::endl;
+    if ((subscriberMsgQ = msgget(subscriberKey, flags)) == -1) {
+        std::cout << "failed to get subscriber msgQ" << std::endl;
     }
 }
 
-listener::~listener()
+subscriber::~subscriber()
 {
     //Delete tmp file! i think
 }
 
-int listener::wait_for(const std::string& signal)
+int subscriber::wait_for(const std::string& signal)
 {
     
     key_t tmpKey{};
@@ -58,8 +58,8 @@ int listener::wait_for(const std::string& signal)
     if (signal.length() > 48) {
         return ERROR_INVALID_MSG_LEN;
     }
-    strcpy(listenerMsg.mtext, signal.c_str());
-    strcpy(listenerMsg.mtext+signal.length(), delimiter);
+    strcpy(subscriberMsg.mtext, signal.c_str());
+    strcpy(subscriberMsg.mtext+signal.length(), delimiter);
     
     if ((tmpKey = ftok(filePath, 1)) == -1) {
         std::cout << "failed to get tmp key: " << tmpFileName <<std::endl;
@@ -72,19 +72,19 @@ int listener::wait_for(const std::string& signal)
         std::cout << tmpMsgQ << std::endl;
     }
 
-    strcpy(listenerMsg.mtext+signal.length()+3, std::to_string(tmpMsgQ).c_str());
-    std::cout << "message: " << listenerMsg.mtext << std::endl;
+    strcpy(subscriberMsg.mtext+signal.length()+3, std::to_string(tmpMsgQ).c_str());
+    std::cout << "message: " << subscriberMsg.mtext << std::endl;
 
-    if(msgsnd(listenerMsgQ, &listenerMsg, common::msgSize, 0) < 0) {
-        std::cout << "error sending listener message" << std::endl;
+    if(msgsnd(subscriberMsgQ, &subscriberMsg, common::msgSize, 0) < 0) {
+        std::cout << "error sending subscriber message" << std::endl;
         common::printMsgQErr();
     } else {
-        std::cout << "sent listener message!" << std::endl;
+        std::cout << "sent subscriber message!" << std::endl;
         // return 0;
     }
     
     if(msgrcv(tmpMsgQ, &rcvMsg, common::msgSize, 0, 0) < 0) {
-        std::cout << "error receiving listener message" << std::endl;
+        std::cout << "error receiving subscriber message" << std::endl;
         common::printMsgQErr();
     } else {
         std::cout << "got a signal!" <<std::endl;
