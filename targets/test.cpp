@@ -1,42 +1,40 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
-#include <thread>
+#include <future>
 #include <chrono>
-#include "subpub.h"
+#include "Scheduler.h"
+#include "poster.h"
+#include "listener.h"
 
 void runScheduler() {
-    subpub::Scheduler sched();
+    subpub::Scheduler sched{};
     sched.start();
 }
 
 bool runPoster(std::string message) {
-    int check{};
-    subpub::Poster poster();
-    check = poster.post(message);
-    return check == 0;
+    subpub::poster publisher{};
+    return (publisher.post(message) == 0);
 }
 
 bool runListener(std::string message) {
-    int check{};
-    subpub::Listener listener();
-    check = listener.wait_for(message);
-    return check == 0;
+    subpub::listener subscriber{};
+    return (subscriber.wait_for(message) == 0);
 }
 
 TEST_CASE("Subpub sniff test", "[scheduler]") {
     using namespace std::chrono_literals;
 
     std::string message{"Yo!"};
-    auto f_s = std::async(std::launch::async, runScheduler);
-    auto f_l = std::async(std::launch::async, runListener, message);
-    auto f_p = std::async(std::launch::async, runPoster, message);
+    auto futureScheduler = std::async(std::launch::async, runScheduler);
+    auto futureListener  = std::async(std::launch::async, runListener, message);
+    auto futurePoster    = std::async(std::launch::async, runPoster, message);
 
-    auto status_l = f_l.wait_for(100ms);
-    auto status_p = f_p.wait_for(100ms);
+    auto statusListner = futureListener.wait_for(100ms);
+    auto statusPoster  = futurePoster.wait_for(100ms);
 
-    REQUIRE(status_l == std::future_status::ready);
-    REQUIRE(status_p == std::future_status::ready);
+    REQUIRE(statusListner == std::future_status::ready);
+    REQUIRE(statusPoster  == std::future_status::ready);
 
-    REQUIRE(f_l.get());
-    REQUIRE(f_p.get());
+    REQUIRE(futureListener.get());
+    REQUIRE(futurePoster.get());
 }
