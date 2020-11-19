@@ -1,9 +1,9 @@
 #include <iostream>
-#include "poster.h"
+#include "publisher.h"
 
 int main() {
 
-    subpub::poster posty;
+    subpub::publisher posty;
 
     posty.post("yo!");
 

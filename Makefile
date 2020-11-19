@@ -1,3 +1,6 @@
+#TODO: Clean up!
+# - dangling rule for sched target
+# - need to add rules for post and listen targets
 CXX			:= g++
 CXXFLAGS	:= -std=c++17
 LDFLAGS		:= 
@@ -21,7 +24,7 @@ CATCH_INCLUDE := -Ithird_party/
 OBJECTS		:= $(SRC:%.cpp=$(OBJ_DIR)/%.o)
 LIB_OBJECTS	:= $(LIB_SRC:%.cpp=$(OBJ_DIR)/%.o)
 
-all: build $(APP_DIR)/$(TARGET_SCHED)
+all: build lib test
 
 lib: build $(LIB_DIR)/$(TARGET_LIB)
 
