@@ -14,7 +14,7 @@ using ProcessId     = int;
 using MessageQId    = key_t;
 using ListenerQueue = std::queue<ProcessId>;
 
-class Scheduler
+class scheduler
 {
 public:
     /**
@@ -24,9 +24,9 @@ public:
      *
      * Open message queues for both signals and listners.
      */
-    Scheduler();
+    scheduler();
 
-    ~Scheduler();
+    ~scheduler();
 
     /**
      * Begin listning for signals and listeners.

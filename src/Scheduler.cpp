@@ -18,7 +18,7 @@ namespace {
 
 namespace subpub {
 
-Scheduler::Scheduler(void)
+scheduler::scheduler(void)
 {
     key_t signalKey, listenerKey;
     int flags = IPC_CREAT;
@@ -39,19 +39,19 @@ Scheduler::Scheduler(void)
     }
 }
 
-Scheduler::~Scheduler(void)
+scheduler::~scheduler(void)
 {
     signalProcessor.join();
     listenerProcessor.join();
 }   
 
-void Scheduler::start(void)
+void scheduler::start(void)
 {
-    signalProcessor   = std::thread(&Scheduler::listenForSignals, this);
-    listenerProcessor = std::thread(&Scheduler::listenForListeners, this);
+    signalProcessor   = std::thread(&scheduler::listenForSignals, this);
+    listenerProcessor = std::thread(&scheduler::listenForListeners, this);
 }
 
-void Scheduler::listenForSignals(void)
+void scheduler::listenForSignals(void)
 {
     while(1) {
         if(msgrcv(signalMsgQ, &signalMsg, common::msgSize, 0, 0) < 0) {
@@ -64,7 +64,7 @@ void Scheduler::listenForSignals(void)
     }
 }
 
-void Scheduler::listenForListeners(void)
+void scheduler::listenForListeners(void)
 {
     while (1) {
         if(msgrcv(listenerMsgQ, &listenerMsg, common::msgSize, 0, 0) < 0) {
@@ -82,13 +82,13 @@ void Scheduler::listenForListeners(void)
     }
 }
 
-void Scheduler::addListenerForSignal(ProcessId listener, Signal signal)
+void scheduler::addListenerForSignal(ProcessId listener, Signal signal)
 {
     std::lock_guard<std::mutex> lock(mapProtecter);
     signalToListeners[signal].push(listener);
 }
 
-void Scheduler::notifyListeners(Signal signal)
+void scheduler::notifyListeners(Signal signal)
 {
     std::lock_guard<std::mutex> lock(mapProtecter);
     ProcessId currentId{};

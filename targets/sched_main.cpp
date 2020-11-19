@@ -3,7 +3,7 @@
 
 int main()
 {
-    subpub::Scheduler sched{};
+    subpub::scheduler sched{};
     sched.start();
     
     std::cout << "Exiting main..." << std::endl;

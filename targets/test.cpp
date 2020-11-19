@@ -2,12 +2,12 @@
 #include "catch.hpp"
 #include <future>
 #include <chrono>
-#include "Scheduler.h"
+#include "scheduler.h"
 #include "poster.h"
 #include "listener.h"
 
 void runScheduler() {
-    subpub::Scheduler sched{};
+    subpub::scheduler sched{};
     sched.start();
 }
 
