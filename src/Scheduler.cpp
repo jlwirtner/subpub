@@ -1,5 +1,6 @@
 #include "common.h"
 #include "scheduler.h"
+#include <chrono>
 #include <iostream>
 #include <sys/types.h>
 #include <sys/ipc.h>
@@ -18,7 +19,7 @@ namespace {
 
 namespace subpub {
 
-scheduler::scheduler(void)
+scheduler::scheduler(void) : continueProcessing{false}
 {
     key_t signalKey, subscriberKey;
     int flags = IPC_CREAT;
@@ -41,35 +42,47 @@ scheduler::scheduler(void)
 
 scheduler::~scheduler(void)
 {
+    continueProcessing = false;
     signalProcessor.join();
     subscriberProcessor.join();
 }   
 
 void scheduler::start(void)
 {
+    continueProcessing = true;
     signalProcessor   = std::thread(&scheduler::listenForSignals, this);
     subscriberProcessor = std::thread(&scheduler::listenForSubscribers, this);
 }
 
+void scheduler::stop(void)
+{
+    continueProcessing = false;
+}
+
 void scheduler::listenForSignals(void)
 {
-    while(1) {
-        if(msgrcv(signalMsgQ, &signalMsg, common::msgSize, 0, 0) < 0) {
-            std::cout << "error receiving signal message" << std::endl;
-            common::printMsgQErr();
+    using namespace std::chrono_literals;
+
+    while(continueProcessing) {
+        if(msgrcv(signalMsgQ, &signalMsg, common::msgSize, 0, IPC_NOWAIT) < 0) {
+            // std::cout << "error receiving signal message" << std::endl;
+            // common::printMsgQErr();
         } else {
             std::cout << "received signal message: " <<  signalMsg.mtext << std::endl;
             notifySubscribers(signalMsg.mtext);
         }
+        std::this_thread::sleep_for(10ms);
     }
 }
 
 void scheduler::listenForSubscribers(void)
 {
-    while (1) {
-        if(msgrcv(subscriberMsgQ, &listenerMsg, common::msgSize, 0, 0) < 0) {
-            std::cout << "error receiving listner message" << std::endl;
-            common::printMsgQErr();
+    using namespace std::chrono_literals;
+
+    while (continueProcessing) {
+        if(msgrcv(subscriberMsgQ, &listenerMsg, common::msgSize, 0, IPC_NOWAIT) < 0) {
+            // std::cout << "error receiving listner message" << std::endl;
+            // common::printMsgQErr();
         } else {
             std::cout << "received listner message:" << listenerMsg.mtext << std::endl;
             std::string message{listenerMsg.mtext};
@@ -79,6 +92,7 @@ void scheduler::listenForSubscribers(void)
             std::cout << "id: " << id << std::endl;
             addSubscriberForSignal(std::stoi(id), signal);
         }
+        std::this_thread::sleep_for(10ms);
     }
 }
 

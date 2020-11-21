@@ -33,6 +33,11 @@ public:
      */
     void start(void);
 
+    /**
+     * Stop listning for signals and subscribers.
+     */
+    void stop(void);
+
 private:
     /**
      * Begin receiving signals from posters.
@@ -62,6 +67,7 @@ private:
 
     std::thread signalProcessor;
     std::thread subscriberProcessor;
+    bool continueProcessing;
 };
 } // namespace subpub
 

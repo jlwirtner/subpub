@@ -2,23 +2,44 @@
 #include "catch.hpp"
 #include <future>
 #include <chrono>
+#include <thread>
+#include <condition_variable>
 #include "scheduler.h"
 #include "publisher.h"
 #include "subscriber.h"
 
+#include <iostream>
+
+namespace {
+    std::mutex m_sched;
+    std::condition_variable cv_sched;
+    bool done  = false;
+}
+
 void runScheduler() {
     subpub::scheduler sched{};
     sched.start();
+    std::unique_lock<std::mutex> lk(m_sched);
+    cv_sched.wait(lk, [] { return done; });
+    std::cout << "stopping scheuler in test!" << std::endl;
+    sched.stop();
 }
 
 bool runPublisher(std::string message) {
     subpub::publisher publisher{};
-    return (publisher.post(message) == 0);
+    bool check{publisher.post(message) == 0};
+    std::cout << "posted it in test!" << std::endl;
+    return check;
 }
 
 bool runSubscriber(std::string message) {
     subpub::subscriber subscriber{};
-    return (subscriber.wait_for(message) == 0);
+    std::cout << "waiting for it in test!" << std::endl;
+    bool check {subscriber.wait_for(message) == 0};
+    std::cout << "received it in test!" << std::endl;
+    done = true;
+    cv_sched.notify_one();
+    return check;
 }
 
 TEST_CASE("Subpub sniff test", "[scheduler]") {
@@ -27,6 +48,7 @@ TEST_CASE("Subpub sniff test", "[scheduler]") {
     std::string message{"Yo!"};
     auto futureScheduler   = std::async(std::launch::async, runScheduler);
     auto futureSubscriber  = std::async(std::launch::async, runSubscriber, message);
+    std::this_thread::sleep_for(40ms);
     auto futurePublisher   = std::async(std::launch::async, runPublisher, message);
 
     auto statusSubscriber = futureSubscriber.wait_for(100ms);
@@ -37,4 +59,5 @@ TEST_CASE("Subpub sniff test", "[scheduler]") {
 
     REQUIRE(futureSubscriber.get());
     REQUIRE(futurePublisher.get());
+
 }
