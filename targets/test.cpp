@@ -19,24 +19,22 @@ namespace {
 void runScheduler() {
     subpub::scheduler sched{};
     sched.start();
+    // wait until tests are done
     std::unique_lock<std::mutex> lk(m_sched);
     cv_sched.wait(lk, [] { return done; });
-    std::cout << "stopping scheuler in test!" << std::endl;
     sched.stop();
 }
 
 bool runPublisher(std::string message) {
     subpub::publisher publisher{};
     bool check{publisher.post(message) == 0};
-    std::cout << "posted it in test!" << std::endl;
     return check;
 }
 
 bool runSubscriber(std::string message) {
     subpub::subscriber subscriber{};
-    std::cout << "waiting for it in test!" << std::endl;
     bool check {subscriber.wait_for(message) == 0};
-    std::cout << "received it in test!" << std::endl;
+    // notify scheduler test is done
     done = true;
     cv_sched.notify_one();
     return check;
