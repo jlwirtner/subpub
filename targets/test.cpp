@@ -34,9 +34,6 @@ bool runPublisher(std::string message) {
 bool runSubscriber(std::string message) {
     subpub::subscriber subscriber{};
     bool check {subscriber.wait_for(message) == 0};
-    // notify scheduler test is done
-    done = true;
-    cv_sched.notify_one();
     return check;
 }
 
@@ -57,5 +54,7 @@ TEST_CASE("Subpub sniff test", "[scheduler]") {
 
     REQUIRE(futureSubscriber.get());
     REQUIRE(futurePublisher.get());
-
+    // notify scheduler test is done
+    done = true;
+    cv_sched.notify_one();
 }
