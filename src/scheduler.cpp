@@ -8,9 +8,9 @@
 #include <errno.h>
 
 namespace {
-    subpub::common::msg_t signalMsg;
-    subpub::common::msg_t listenerMsg;
-    subpub::common::msg_t notificationMsg;
+    subpub::common::msg_t signalMsg {};
+    subpub::common::msg_t listenerMsg {};
+    subpub::common::msg_t notificationMsg {};
 
     std::string delimiter = "***";
 
