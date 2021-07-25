@@ -8,7 +8,7 @@ namespace subpub {
 class temp_msgq {
 public:
     temp_msgq();
-    inline int get_id() { return id; };
+    inline int get_id() const { return id; };
     std::string recv();
 private:
     temp_file tmp;

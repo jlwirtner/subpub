@@ -15,7 +15,7 @@ public:
     temp_file& operator=(const temp_file&) = delete;
     temp_file& operator=(temp_file&&) = delete;
 
-    inline std::string get_path() { return path; };
+    inline std::string get_path() const { return path; };
 
 private:
     std::string path;

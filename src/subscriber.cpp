@@ -3,9 +3,6 @@
 #include "temp_msgq.h"
 
 namespace {
-
-    char delimiter[] = "***";
-
     std::string createMessage(const std::string& signal, int msg_id);
 }
 
@@ -24,9 +21,12 @@ int subscriber::wait_for(const std::string& signal)
     temp_msgq tmpMsgQ {};
     std::string message {createMessage(signal, tmpMsgQ.get_id())};
 
+    // inform scheduler scheduler that this msgQ is waiting for
+    // the given signal
     if(!subscriberMsgQ.send(message))
         throw std::runtime_error("Failed to send to subscriber msgQ.");
     
+    // Block until signal is published
     tmpMsgQ.recv();
 
     return 0;
@@ -37,6 +37,7 @@ int subscriber::wait_for(const std::string& signal)
 namespace {
 
 std::string createMessage(const std::string& signal, int msg_id) {
+    static const char delimiter[] = "***";
     std::string output {signal};
     output += delimiter;
     output += std::to_string(msg_id);

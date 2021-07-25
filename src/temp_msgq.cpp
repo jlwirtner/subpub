@@ -3,6 +3,9 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
+#include <errno.h>
+
+#include <sstream>
 
 #include "common.h"
 
@@ -17,11 +20,15 @@ temp_msgq::temp_msgq() : tmp{} {
     int flags = IPC_CREAT;
     
     if ((tmpKey = ftok(tmp.get_path().c_str(), 1)) == -1) {
-        throw std::runtime_error("Failed to get tmp key.");
+        std::stringstream error {};
+        error << "Failed to get tmp key: " << errno;
+        throw std::runtime_error(error.str());
     }
 
     if ((id = msgget(tmpKey, flags)) == -1) {
-        throw std::runtime_error("Failed to get tmp msgQ.");
+        std::stringstream error {};
+        error << "Failed to get tmp msgQ: " << errno;
+        throw std::runtime_error(error.str());
     }
 }
 
